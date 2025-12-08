@@ -1,0 +1,689 @@
+package com.example.metadatasurvey
+
+import android.graphics.Bitmap
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.RadioButton
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import kotlin.math.min
+import kotlinx.coroutines.delay
+
+@Composable
+fun HomeScreen(onStartClick: () -> Unit) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color(0xFFB3E5FC))
+            .padding(24.dp),
+        verticalArrangement = Arrangement.Top,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text(
+            text = "Welcome to",
+            fontSize = 32.sp,
+            fontWeight = FontWeight.Bold,
+            fontFamily = FontFamily.Serif,
+            color = Color.Black,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.fillMaxWidth()
+        )
+        Spacer(modifier = Modifier.height(16.dp))
+        Text(
+            text = "Insight Screening",
+            fontSize = 32.sp,
+            fontWeight = FontWeight.Bold,
+            fontFamily = FontFamily.Serif,
+            color = Color.Black,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.fillMaxWidth()
+        )
+        Spacer(modifier = Modifier.height(32.dp))
+        Image(
+            painter = painterResource(id = R.drawable.icon), // Replace with your actual image resource
+            contentDescription = "Insight Screening Icon",
+            modifier = Modifier
+                .height(300.dp)
+                .width(300.dp)
+        )
+        Spacer(modifier = Modifier.height(32.dp))
+        Text(
+            text = "Your medical diagnosis is in sight",
+            fontSize = 30.sp,
+            fontWeight = FontWeight.Medium,
+            fontFamily = FontFamily.Cursive,
+            color = Color.DarkGray,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.fillMaxWidth()
+        )
+        Spacer(modifier = Modifier.height(40.dp))
+        Button(
+            onClick = onStartClick,
+            modifier = Modifier
+                .padding(12.dp)
+                .fillMaxWidth(0.6f),
+            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF0288D1))
+        ) {
+            Text(text = "Get Started", fontSize = 20.sp, color = Color.White)
+        }
+    }
+}
+
+@Composable
+fun MetadataSelectionScreen(onMetadataSelected: (LongArray) -> Unit) {
+    val gender = remember { mutableStateOf<Long?>(null) }
+    val diabetes = remember { mutableStateOf<Long?>(null) }
+    val hypertension = remember { mutableStateOf<Long?>(null) }
+    var diabetesDuration by remember { mutableStateOf("") }
+    var age by remember { mutableStateOf("") }
+
+    var genderError by remember { mutableStateOf(false) }
+    var diabetesError by remember { mutableStateOf(false) }
+    var durationError by remember { mutableStateOf(false) }
+    var ageError by remember { mutableStateOf(false) }
+    var hypertensionError by remember { mutableStateOf(false) }
+
+    fun validateAndSubmit() {
+        genderError = gender.value == null
+        diabetesError = diabetes.value == null
+        durationError = diabetesDuration.isEmpty()
+        ageError = age.isEmpty()
+        hypertensionError = hypertension.value == null
+
+        if (!genderError && !diabetesError && !durationError && !ageError && !hypertensionError) {
+            val binnedDiabetesDuration = binDbTime(diabetesDuration.toInt())
+            val binnedAge = binAge(age.toInt())
+            onMetadataSelected(
+                longArrayOf(
+                    gender.value!!,
+                    binnedAge.toLong(),
+                    hypertension.value!!,
+                    binnedDiabetesDuration.toLong(),
+                    diabetes.value!!
+                )
+            )
+        }
+    }
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color(0xFFB3E5FC))
+            .verticalScroll(rememberScrollState())
+            .padding(16.dp),
+        verticalArrangement = Arrangement.Top,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text(
+            text = "Enter Your Medical Information",
+            fontSize = 28.sp,
+            fontWeight = FontWeight.Bold,
+            fontFamily = FontFamily.Serif,
+            color = Color.Black,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.fillMaxWidth().padding(bottom = 32.dp)
+        )
+        // 1. Gender Selection
+        Column(modifier = Modifier.fillMaxWidth()) {
+            Text(
+                text = "1. What is your gender?",
+                fontSize = 20.sp,
+                fontWeight = FontWeight.SemiBold,
+                fontFamily = FontFamily.Serif,
+                color = Color.Black,
+                textAlign = TextAlign.Start,
+                modifier = Modifier.fillMaxWidth()
+            )
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
+                RadioButton(selected = gender.value == 0L, onClick = { gender.value = 0L })
+                Text(text = "Female", fontFamily = FontFamily.Serif, color = Color.Black)
+                Spacer(modifier = Modifier.width(16.dp))
+                RadioButton(selected = gender.value == 1L, onClick = { gender.value = 1L })
+                Text(text = "Male", fontFamily = FontFamily.Serif, color = Color.Black)
+            }
+            if (genderError) {
+                Text("This question is required.", color = Color.Red, fontSize = 14.sp)
+            }
+        }
+        Spacer(modifier = Modifier.height(24.dp))
+        // 2. Diabetes Selection
+        Column(modifier = Modifier.fillMaxWidth()) {
+            Text(
+                text = "2. Have you been diagnosed with Diabetes Mellitus?",
+                fontSize = 20.sp,
+                fontWeight = FontWeight.SemiBold,
+                fontFamily = FontFamily.Serif,
+                color = Color.Black,
+                textAlign = TextAlign.Start,
+                modifier = Modifier.fillMaxWidth()
+            )
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
+                RadioButton(selected = diabetes.value == 0L, onClick = { diabetes.value = 0L })
+                Text(text = "No", fontFamily = FontFamily.Serif, color = Color.Black)
+                Spacer(modifier = Modifier.width(16.dp))
+                RadioButton(selected = diabetes.value == 1L, onClick = { diabetes.value = 1L })
+                Text(text = "Yes", fontFamily = FontFamily.Serif, color = Color.Black)
+            }
+            if (diabetesError) {
+                Text("This question is required.", color = Color.Red, fontSize = 14.sp)
+            }
+        }
+        Spacer(modifier = Modifier.height(24.dp))
+        // 3. Diabetes Duration
+        Column(modifier = Modifier.fillMaxWidth()) {
+            Text(
+                text = "3. How long have you had diabetes in years?",
+                fontSize = 20.sp,
+                fontWeight = FontWeight.SemiBold,
+                fontFamily = FontFamily.Serif,
+                color = Color.Black,
+                textAlign = TextAlign.Start,
+                modifier = Modifier.fillMaxWidth()
+            )
+            Text(
+                text = "Enter zero if you answered No to the previous question.",
+                fontSize = 14.sp,
+                fontStyle = FontStyle.Italic,
+                fontFamily = FontFamily.Serif,
+                color = Color.Black,
+                textAlign = TextAlign.Start,
+                modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp)
+            )
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
+                TextField(
+                    value = diabetesDuration,
+                    onValueChange = {
+                        if (it.all { char -> char.isDigit() }) {
+                            diabetesDuration = it
+                        }
+                    },
+                    singleLine = true,
+                    keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Number),
+                    modifier = Modifier.fillMaxWidth(0.8f)
+                )
+            }
+            if (durationError) {
+                Text("Please enter a valid duration.", color = Color.Red, fontSize = 14.sp)
+            }
+        }
+        Spacer(modifier = Modifier.height(24.dp))
+        // 4. Age Input
+        Column(modifier = Modifier.fillMaxWidth()) {
+            Text(
+                text = "4. What is your age in years?",
+                fontSize = 20.sp,
+                fontWeight = FontWeight.SemiBold,
+                fontFamily = FontFamily.Serif,
+                color = Color.Black,
+                textAlign = TextAlign.Start,
+                modifier = Modifier.fillMaxWidth()
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
+                TextField(
+                    value = age,
+                    onValueChange = {
+                        if (it.all { char -> char.isDigit() }) {
+                            age = it
+                        }
+                    },
+                    singleLine = true,
+                    keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Number),
+                    modifier = Modifier.fillMaxWidth(0.8f)
+                )
+            }
+            if (ageError) {
+                Text("Please enter your age.", color = Color.Red, fontSize = 14.sp)
+            }
+        }
+        Spacer(modifier = Modifier.height(24.dp))
+        // 5. Hypertension Selection
+        Column(modifier = Modifier.fillMaxWidth()) {
+            Text(
+                text = "5. Have you been diagnosed with hypertension?",
+                fontSize = 20.sp,
+                fontWeight = FontWeight.SemiBold,
+                fontFamily = FontFamily.Serif,
+                color = Color.Black,
+                textAlign = TextAlign.Start,
+                modifier = Modifier.fillMaxWidth()
+            )
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
+                RadioButton(selected = hypertension.value == 0L, onClick = { hypertension.value = 0L })
+                Text(text = "No", fontFamily = FontFamily.Serif, color = Color.Black)
+                Spacer(modifier = Modifier.width(16.dp))
+                RadioButton(selected = hypertension.value == 1L, onClick = { hypertension.value = 1L })
+                Text(text = "Yes", fontFamily = FontFamily.Serif, color = Color.Black)
+            }
+            if (hypertensionError) {
+                Text("This question is required.", color = Color.Red, fontSize = 14.sp)
+            }
+        }
+        Spacer(modifier = Modifier.height(48.dp))
+        // Next Button
+        Button(
+            onClick = { validateAndSubmit() },
+            modifier = Modifier.fillMaxWidth(0.5f)
+        ) {
+            Text(text = "Next", fontFamily = FontFamily.Serif, fontSize = 20.sp, color = Color.White)
+        }
+    }
+}
+
+@Composable
+fun ImagePickerScreen(
+    capturedImage: Bitmap?,
+    onCaptureClick: () -> Unit,
+    onPickFromGalleryClick: () -> Unit,
+    onProceedToResults: () -> Unit
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color(0xFFB3E5FC))
+            .padding(16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text(
+            text = "Capture or Select Fundus Image",
+            fontSize = 24.sp,
+            fontWeight = FontWeight.Bold,
+            fontFamily = FontFamily.Serif,
+            color = Color.Black,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.fillMaxWidth().padding(bottom = 24.dp)
+        )
+        Box(
+            modifier = Modifier
+                .size(250.dp)
+                .background(Color.White, shape = RoundedCornerShape(12.dp))
+                .padding(8.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            if (capturedImage != null) {
+                Image(
+                    bitmap = capturedImage.asImageBitmap(),
+                    contentDescription = "Selected Image",
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier.fillMaxSize()
+                )
+            } else {
+                Text(
+                    text = "No image selected",
+                    fontSize = 16.sp,
+                    color = Color.Gray,
+                    fontFamily = FontFamily.Serif,
+                    textAlign = TextAlign.Center
+                )
+            }
+        }
+        Spacer(modifier = Modifier.height(24.dp))
+        Button(
+            onClick = onProceedToResults,
+            enabled = capturedImage != null,
+            modifier = Modifier.padding(8.dp).fillMaxWidth(0.6f),
+            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF0288D1))
+        ) {
+            Text(
+                text = "Proceed to Image Quality Assessment",
+                fontSize = 18.sp,
+                color = Color.White,
+                fontFamily = FontFamily.Serif
+            )
+        }
+        Button(
+            onClick = onCaptureClick,
+            modifier = Modifier.padding(8.dp).fillMaxWidth(0.6f),
+            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF0288D1))
+        ) {
+            Text(
+                text = "Capture Image",
+                fontSize = 18.sp,
+                color = Color.White,
+                fontFamily = FontFamily.Serif
+            )
+        }
+        Button(
+            onClick = onPickFromGalleryClick,
+            modifier = Modifier.padding(8.dp).fillMaxWidth(0.6f),
+            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF0288D1))
+        ) {
+            Text(
+                text = "Pick from Gallery",
+                fontSize = 18.sp,
+                color = Color.White,
+                fontFamily = FontFamily.Serif
+            )
+        }
+    }
+}
+
+@Composable
+fun ImageQualityCheckScreen(
+    isImageHighQuality: Boolean,
+    onRetakeImage: () -> Unit,
+    onProceedToClassification: () -> Unit
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color(0xFFB3E5FC))
+            .padding(16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        Text(
+            text = if (isImageHighQuality) "Image is of Good Quality" else "Image is not of sufficient quality for InSight Screening.",
+            fontSize = 24.sp,
+            fontWeight = FontWeight.Bold,
+            fontFamily = FontFamily.Serif,
+            color = Color.Black,
+            textAlign = TextAlign.Center
+        )
+        Spacer(modifier = Modifier.height(24.dp))
+        Button(
+            onClick = onRetakeImage,
+            enabled = !isImageHighQuality,
+            modifier = Modifier.fillMaxWidth(0.6f),
+            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFD32F2F))
+        ) {
+            Text("Retake Image", fontSize = 18.sp, color = Color.White)
+        }
+        Spacer(modifier = Modifier.height(16.dp))
+        Button(
+            onClick = onProceedToClassification,
+            enabled = isImageHighQuality,
+            modifier = Modifier.fillMaxWidth(0.6f),
+            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4CAF50))
+        ) {
+            Text("Proceed to Screening", fontSize = 18.sp, color = Color.White)
+        }
+    }
+}
+
+@Composable
+fun AnimatedPieChart(score: Float, label: String) {
+    val animatedScore by animateFloatAsState(
+        targetValue = score,
+        animationSpec = tween(durationMillis = 4000, easing = FastOutSlowInEasing)
+    )
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Canvas(modifier = Modifier.size(250.dp)) {
+            val canvasSize = size.minDimension
+            drawArc(
+                color = Color.Blue,
+                startAngle = -90f,
+                sweepAngle = animatedScore * 360f,
+                useCenter = true,
+                topLeft = Offset(0f, 0f),
+                size = Size(canvasSize, canvasSize)
+            )
+            drawArc(
+                color = Color.Gray,
+                startAngle = -90f + (animatedScore * 360f),
+                sweepAngle = (1.0f - animatedScore) * 360f,
+                useCenter = true,
+                topLeft = Offset(0f, 0f),
+                size = Size(canvasSize, canvasSize)
+            )
+        }
+        Spacer(modifier = Modifier.height(16.dp))
+        Text(
+            text = String.format("Probability: %.2f%%", score * 100),
+            fontSize = 20.sp,
+            fontWeight = FontWeight.SemiBold,
+            fontFamily = FontFamily.Serif,
+            color = Color.Black
+        )
+    }
+}
+
+@Composable
+fun ResultScreen(
+    classificationResult: List<List<Float>>?,
+    onBackToHome: () -> Unit
+) {
+    val probabilities = classificationResult
+    var currentScreenIndex by remember { mutableStateOf(0) }
+    if (probabilities != null) {
+        val diseases = listOf(
+            "Diabetic Retinopathy" to probabilities[0][1],
+            "Glaucoma" to probabilities[1][1],
+            "Macular Edema" to probabilities[2][1],
+            "Myopic Fundus" to probabilities[3][1],
+            "AMD" to probabilities[4][1]
+        )
+        if (currentScreenIndex < diseases.size) {
+            val (diseaseName, score) = diseases[currentScreenIndex]
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color(0xFFB3E5FC))
+                    .padding(16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.SpaceBetween
+            ) {
+                Spacer(modifier = Modifier.height(16.dp))
+                Text(
+                    text = diseaseName,
+                    fontSize = 28.sp,
+                    fontWeight = FontWeight.Bold,
+                    fontFamily = FontFamily.Serif,
+                    color = Color.Black
+                )
+                AnimatedPieChart(score = score, label = "$diseaseName Probability")
+                Button(
+                    onClick = {
+                        if (currentScreenIndex < diseases.size - 1) {
+                            currentScreenIndex++
+                        } else {
+                            onBackToHome()
+                        }
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF7E57C2)),
+                    modifier = Modifier.fillMaxWidth(0.6f).padding(bottom = 16.dp)
+                ) {
+                    Text(
+                        text = if (currentScreenIndex < diseases.size - 1) "Next" else "Finish",
+                        fontSize = 20.sp,
+                        color = Color.White,
+                        fontFamily = FontFamily.Serif
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun PieChart(fraction: Float) {
+    val animatedFraction by animateFloatAsState(targetValue = fraction, label = "Pie Chart Animation")
+    Canvas(modifier = Modifier.size(100.dp)) {
+        val diameter = min(size.width, size.height)
+        drawArc(
+            color = Color.Red,
+            startAngle = -90f,
+            sweepAngle = animatedFraction * 360,
+            useCenter = true
+        )
+        drawArc(
+            color = Color.Gray,
+            startAngle = -90f + animatedFraction * 360,
+            sweepAngle = (1 - animatedFraction) * 360,
+            useCenter = true
+        )
+    }
+}
+
+@Composable
+fun MetadataSurveyApp() {
+    var age by remember { mutableStateOf("") }
+    var timeOfDiagnosis by remember { mutableStateOf("") }
+    var gender by remember { mutableStateOf("") }
+    var smokingHistory by remember { mutableStateOf("") }
+    var hypertension by remember { mutableStateOf("") }
+    var alcoholUse by remember { mutableStateOf("") }
+    var obesity by remember { mutableStateOf("") }
+    var vasc by remember { mutableStateOf("") }
+    var insulinuse by remember { mutableStateOf("") }
+    var oraluse by remember { mutableStateOf("") }
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp)
+            .verticalScroll(rememberScrollState()),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+        Text(text = "Clinical History Survey", style = MaterialTheme.typography.headlineMedium)
+        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+            TextField(
+                value = age,
+                onValueChange = { age = it },
+                label = { Text("Enter Age") },
+                modifier = Modifier.weight(1f),
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+            )
+            TextField(
+                value = timeOfDiagnosis,
+                onValueChange = { timeOfDiagnosis = it },
+                label = { Text("Time") },
+                modifier = Modifier.weight(1f),
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+            )
+        }
+        Spacer(modifier = Modifier.height(16.dp))
+        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+            RadioButtonGroupColumn(
+                title = "Gender",
+                options = listOf("Female", "Male"),
+                selectedOption = gender,
+                onOptionSelected = { gender = it },
+                modifier = Modifier.weight(1f)
+            )
+            RadioButtonGroupColumn(
+                title = "Smoking History",
+                options = listOf("Yes", "No"),
+                selectedOption = smokingHistory,
+                onOptionSelected = { smokingHistory = it },
+                modifier = Modifier.weight(1f)
+            )
+        }
+        Spacer(modifier = Modifier.height(16.dp))
+        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+            RadioButtonGroupColumn(
+                title = "Hypertension",
+                options = listOf("Yes", "No"),
+                selectedOption = hypertension,
+                onOptionSelected = { hypertension = it },
+                modifier = Modifier.weight(1f)
+            )
+            RadioButtonGroupColumn(
+                title = "Alcohol Use",
+                options = listOf("Yes", "No"),
+                selectedOption = alcoholUse,
+                onOptionSelected = { alcoholUse = it },
+                modifier = Modifier.weight(1f)
+            )
+        }
+        Spacer(modifier = Modifier.height(16.dp))
+        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+            RadioButtonGroupColumn(
+                title = "Obesity",
+                options = listOf("Yes", "No"),
+                selectedOption = obesity,
+                onOptionSelected = { obesity = it },
+                modifier = Modifier.weight(1f)
+            )
+            RadioButtonGroupColumn(
+                title = "Vascular Disease",
+                options = listOf("Yes", "No"),
+                selectedOption = vasc,
+                onOptionSelected = { vasc = it },
+                modifier = Modifier.weight(1f)
+            )
+        }
+        Spacer(modifier = Modifier.height(16.dp))
+        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+            RadioButtonGroupColumn(
+                title = "Insulin Use",
+                options = listOf("Yes", "No"),
+                selectedOption = insulinuse,
+                onOptionSelected = { insulinuse = it },
+                modifier = Modifier.weight(1f)
+            )
+            RadioButtonGroupColumn(
+                title = "Oral Treatment Use",
+                options = listOf("Yes", "No"),
+                selectedOption = oraluse,
+                onOptionSelected = { oraluse = it },
+                modifier = Modifier.weight(1f)
+            )
+        }
+        Spacer(modifier = Modifier.height(16.dp))
+        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+            Text(
+                text = "Summary: \n Gender - $gender  \n Smoking History - $smokingHistory \n  Hypertension - $hypertension " +
+                        "\n Alcohol Use - $alcoholUse \n Obesity - $obesity  \n Vascular Disease - $vasc \n Insulin Use - $insulinuse" +
+                        "\n Oral Treatment Use - $oraluse"
+            )
+        }
+    }
+}
+
+@Composable
+fun RadioButtonGroupColumn(
+    title: String,
+    options: List<String>,
+    selectedOption: String,
+    onOptionSelected: (String) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Column(modifier = modifier.fillMaxWidth()) {
+        Text(text = title, style = MaterialTheme.typography.bodyLarge)
+        Column(
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+            modifier = Modifier.padding(top = 8.dp)
+        ) {
+            options.forEach { option ->
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    RadioButton(
+                        selected = selectedOption == option,
+                        onClick = { onOptionSelected(option) }
+                    )
+                    Text(text = option)
+                }
+            }
+        }
+    }
+}

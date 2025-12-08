@@ -1,0 +1,64 @@
+package com.example.metadatasurvey
+
+import android.content.Context
+import android.content.pm.PackageManager
+import android.graphics.Bitmap
+import androidx.activity.ComponentActivity
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
+import org.pytorch.Tensor
+import org.pytorch.torchvision.TensorImageUtils
+import kotlin.math.exp
+import java.io.File
+import java.io.FileOutputStream
+
+// Converts a list containing one bitmap into a tensor using PyTorch utilities.
+fun createTensorListFromBitmaps(bitmaps: List<Bitmap>): List<Tensor> {
+    require(bitmaps.size == 1) { "Exactly 1 bitmap is required." }
+    return bitmaps.map { bitmap ->
+        val resizedBitmap = Bitmap.createScaledBitmap(bitmap, 256, 256, true)
+        TensorImageUtils.bitmapToFloat32Tensor(
+            resizedBitmap,
+            TensorImageUtils.TORCHVISION_NORM_MEAN_RGB,
+            TensorImageUtils.TORCHVISION_NORM_STD_RGB
+        )
+    }
+}
+
+// Applies softmax to a float array.
+fun softmax(scores: FloatArray): FloatArray {
+    val expScores = scores.map { exp(it) }
+    val sumExpScores = expScores.sum()
+    return expScores.map { it / sumExpScores }.toFloatArray()
+}
+
+// Checks for camera permission.
+fun checkCameraPermission(context: Context): Boolean {
+    return ContextCompat.checkSelfPermission(context, android.Manifest.permission.CAMERA) ==
+            PackageManager.PERMISSION_GRANTED
+}
+
+// Requests camera permission.
+fun requestCameraPermission(activity: ComponentActivity) {
+    ActivityCompat.requestPermissions(
+        activity,
+        arrayOf(android.Manifest.permission.CAMERA),
+        CAMERA_PERMISSION_REQUEST_CODE
+    )
+}
+
+// Copies an asset file to the app's file directory and returns its absolute path.
+fun assetFilePath(context: Context, assetName: String): String {
+    val file = File(context.filesDir, assetName)
+    if (file.exists() && file.length() > 0) {
+        return file.absolutePath
+    }
+    context.assets.open(assetName).use { inputStream ->
+        FileOutputStream(file).use { outputStream ->
+            inputStream.copyTo(outputStream)
+        }
+    }
+    return file.absolutePath
+}
+
+const val CAMERA_PERMISSION_REQUEST_CODE = 1
