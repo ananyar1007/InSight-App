@@ -22,8 +22,7 @@ InSight performs retinal disease assessment through:
 Users start by selecting "Get Started."
 
 **Screenshot Placeholder:**  
-`![Home Screen](images/home.png)`   https://github.com/ananyar1007/InSight-App/blob/master/images/home.png?raw=true
-![Home Screen](https://raw.githubusercontent.com/<username>/<repo>/main/images/results.png)
+`![Home Screen](images/home.png)
 
 ---
 
