@@ -13,6 +13,20 @@ InSight performs retinal disease assessment through:
 - On-device PyTorch models
 - Automated PDF report generation summarizing results
 
+The app loads three PyTorch models from the assets folder:
+
+- `traced_metafusion_model3.pth` — primary multimodal classifier  
+- `traced_metafusion_dr_model2.pth` — DR severity classifier  
+- `traced_blur_detector2.pth` — image quality model  
+
+Tensor creation, normalization, and inference logic are implemented in:
+
+- `createTensorListFromBitmaps()`  
+- `classifyImage()`  
+- `classifyDR()`  
+- `isImageHighQuality()`  
+
+These are located in `MainActivity.kt`.
 
 ---
 
@@ -21,16 +35,13 @@ InSight performs retinal disease assessment through:
 ### 1. Home Screen
 Users start by selecting "Get Started."
 
-**Screenshot Placeholder:**  
-![Home Screen](images/home.png)
-<img src="images/home.png" width="20">
+<img src="images/home.png" width="200">
 ---
 
 ### 2. Enter Personal Information
 Users enter their name and email. This information is included in the final PDF report.
 
-**Screenshot Placeholder:**  
-![Personal Info](images/personal_info.png)
+<img src="images/personal_info.png" width="200">
 
 ---
 
@@ -38,16 +49,13 @@ Users enter their name and email. This information is included in the final PDF 
 Users enter relevant metadata such as age, gender, diabetes history, hypertension status, and duration of diabetes.  
 Age and diabetes-duration binning occur in `binAge()` and `binDbTime()`, located in `MetadataUtils.kt`.
 
-**Screenshot Placeholder:**  
-![Metadata Screen](images/metadata.png)
-
+<img src="images/metadata.png" width="200">
 ---
 
 ### 4. Capture or Select Fundus Image
 The user can capture a fundus image with the device camera or select an existing image from the gallery.
-
-**Screenshot Placeholder:**  
-![Image Picker](images/image_picker.png)
+ 
+<img src="images/image_picker.png" width="200">
 
 ---
 
@@ -58,9 +66,7 @@ If acceptable, the app proceeds to disease screening.
 
 The quality check is implemented in `isImageHighQuality()` in `MainActivity.kt`.
 
-**Screenshot Placeholder:**  
-![Quality Check](images/quality_check.png)
-
+<img src="images/quality_check.png" width="200">
 ---
 
 ### 6. Disease Screening
@@ -74,8 +80,7 @@ The multimodal classifier estimates probabilities for:
 
 A separate classifier provides Diabetic Retinopathy severity grading.
 
-**Screenshot Placeholder:**  
-`![Results Screen](images/results.png)
+<img src="images/results.png" width="200">
 
 ---
 
@@ -92,22 +97,7 @@ The app generates a detailed PDF report including:
 Users can save the PDF locally or email it to themselves.  
 PDF generation is handled in `generatePDF()` in `MainActivity.kt`.
 
-**Screenshot Placeholder:**  
-![PDF Example](images/pdf.png)
+<img src="images/pdf.png" width="200">
 
 ---
 
-The app loads three PyTorch models from the assets folder:
-
-- `traced_metafusion_model3.pth` — primary multimodal classifier  
-- `traced_metafusion_dr_model2.pth` — DR severity classifier  
-- `traced_blur_detector2.pth` — image quality model  
-
-Tensor creation, normalization, and inference logic are implemented in:
-
-- `createTensorListFromBitmaps()`  
-- `classifyImage()`  
-- `classifyDR()`  
-- `isImageHighQuality()`  
-
-These are located in `MainActivity.kt`.
