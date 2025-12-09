@@ -23,7 +23,7 @@ Users start by selecting "Get Started."
 
 **Screenshot Placeholder:**  
 `![Home Screen](images/home.png)
-
+<img src="images/home.png" width="350">
 ---
 
 ### 2. Enter Personal Information
