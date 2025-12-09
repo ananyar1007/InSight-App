@@ -22,15 +22,15 @@ InSight performs retinal disease assessment through:
 Users start by selecting "Get Started."
 
 **Screenshot Placeholder:**  
-`![Home Screen](images/home.png)
-<img src="images/home.png" width="350">
+![Home Screen](images/home.png)
+<img src="images/home.png" width="20">
 ---
 
 ### 2. Enter Personal Information
 Users enter their name and email. This information is included in the final PDF report.
 
 **Screenshot Placeholder:**  
-`![Personal Info](images/personal_info.png)
+![Personal Info](images/personal_info.png)
 
 ---
 
@@ -39,7 +39,7 @@ Users enter relevant metadata such as age, gender, diabetes history, hypertensio
 Age and diabetes-duration binning occur in `binAge()` and `binDbTime()`, located in `MetadataUtils.kt`.
 
 **Screenshot Placeholder:**  
-`![Metadata Screen](images/metadata.png)
+![Metadata Screen](images/metadata.png)
 
 ---
 
@@ -47,7 +47,7 @@ Age and diabetes-duration binning occur in `binAge()` and `binDbTime()`, located
 The user can capture a fundus image with the device camera or select an existing image from the gallery.
 
 **Screenshot Placeholder:**  
-`![Image Picker](images/image_picker.png)
+![Image Picker](images/image_picker.png)
 
 ---
 
@@ -59,7 +59,7 @@ If acceptable, the app proceeds to disease screening.
 The quality check is implemented in `isImageHighQuality()` in `MainActivity.kt`.
 
 **Screenshot Placeholder:**  
-`![Quality Check](images/quality_check.png)
+![Quality Check](images/quality_check.png)
 
 ---
 
@@ -93,7 +93,7 @@ Users can save the PDF locally or email it to themselves.
 PDF generation is handled in `generatePDF()` in `MainActivity.kt`.
 
 **Screenshot Placeholder:**  
-`![PDF Example](images/pdf.png)
+![PDF Example](images/pdf.png)
 
 ---
 
